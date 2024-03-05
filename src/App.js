@@ -1,13 +1,10 @@
 import "./App.css";
-import React, { useReducer, useRef } from "react";
+import React, { useReducer, useRef, useEffect } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./pages/Home";
 import Edit from "./pages/Edit";
 import New from "./pages/New";
 import Diary from "./pages/Diary";
-import RouteTest from "./components/Routetest";
-import MyButton from "./components/MyButton";
-import MyHeader from "./components/MyHeader";
 
 const reducer = (state, action) => {
   let newState = [];
@@ -23,7 +20,8 @@ const reducer = (state, action) => {
       break;
     }
     case "REMOVE": {
-      newState = state.fliter((it) => it.id !== action.targetId);
+      newState = state.filter((it) => it.id !== action.targetId);
+
       break;
     }
     case "EDIT": {
@@ -35,6 +33,7 @@ const reducer = (state, action) => {
     default:
       return state;
   }
+  localStorage.setItem("diary", JSON.stringify(newState));
   return newState;
 };
 
@@ -75,9 +74,22 @@ const dummyData = [
 ];
 
 function App() {
+  useEffect(() => {
+    const localData = localStorage.getItem("diary");
+    if (localData) {
+      const diaryList = JSON.parse(localData).sort(
+        (a, b) => parseInt(b.id) - parseInt(a.id)
+      );
+      dataId.current = parseInt(diaryList[0].id) + 1;
+      //산술연산 parseInt 습관화하기
+
+      dispatch({ type: "INIT", data: diaryList });
+    }
+  }, []);
+
   const [data, dispatch] = useReducer(reducer, dummyData);
 
-  const dataId = useRef(1);
+  const dataId = useRef(0);
   //create
   const onCreate = (date, content, emotion) => {
     dispatch({
